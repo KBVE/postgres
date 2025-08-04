@@ -47,7 +47,7 @@ buildPgrxExtension_0_15_0 rec {
   };
 
   cargoLock = {
-    lockFile = "${src}/apps/kbve/kilobase/Cargo.lock";
+    lockFile = "${src}/Cargo.lock";
     allowBuiltinFetchGit = false;
   };
 
