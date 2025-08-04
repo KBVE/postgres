@@ -26,12 +26,22 @@ buildPgrxExtension_0_15_0 rec {
       rev = "main"; # Use main branch or specific commit hash
       hash = "sha256-3HLpiGuM2zl6h7hIspe9lsHlo/kLy6FaxgTaopR7H4Y=";
     };
-  in pkgs.runCommand "kilobase-filtered-src" {} ''
-    # Copy the full source
-    cp -r ${fullSrc} $out
+  in pkgs.runCommand "kilobase-isolated-src" {
+    nativeBuildInputs = [ cargo ];
+    CARGO = "${cargo}/bin/cargo";
+  } ''
+    # Copy only the kilobase directory and necessary files
+    mkdir -p $out/apps/kbve
+    cp -r ${fullSrc}/apps/kbve/kilobase $out/apps/kbve/
+    
+    # Copy any shared files that might be needed (like .gitignore, etc.)
+    if [ -f ${fullSrc}/.gitignore ]; then
+      cp ${fullSrc}/.gitignore $out/
+    fi
+    
     chmod -R +w $out
     
-    # Create a minimal workspace Cargo.toml that only includes kilobase
+    # Create a standalone workspace Cargo.toml that only includes kilobase
     cat > $out/Cargo.toml << 'EOF'
 [workspace]
 resolver = "2"
@@ -48,18 +58,18 @@ lto = "fat"
 codegen-units = 1
 EOF
 
-    # Remove problematic workspace members to prevent cargo from trying to process them
-    rm -rf $out/packages/rust/jedi || true
-    rm -rf $out/packages/rust/q || true 
-    rm -rf $out/packages/rust/soul || true
-    rm -rf $out/packages/erust || true
-    rm -rf $out/packages/holy || true
-    rm -rf $out/apps/kbve/rust_kanban || true
-    rm -rf $out/apps/kbve/rust_api_profile || true
-    rm -rf $out/apps/rareicon || true
-    rm -rf $out/apps/experimental || true
-    rm -rf $out/apps/rentearth || true
-    rm -rf $out/apps/discord || true
+    # Change to workspace root and generate a new Cargo.lock with only kilobase dependencies
+    cd $out
+    ${cargo}/bin/cargo generate-lockfile --offline || ${cargo}/bin/cargo generate-lockfile
+    
+    # Verify the lockfile was created
+    if [ ! -f Cargo.lock ]; then
+      echo "Failed to generate Cargo.lock"
+      exit 1
+    fi
+    
+    echo "Generated isolated Cargo.lock for kilobase"
+    ls -la
   '';
 
   # Cargo.toml path if not at root
@@ -99,6 +109,13 @@ EOF
     #   "some-git-dep-0.1.0" = "sha256-...";
     # };
   };
+
+  # Override the default Cargo.toml generation to use our filtered workspace
+  postPatch = ''
+    # Make sure we're using our filtered workspace configuration
+    ls -la Cargo.toml
+    cat Cargo.toml
+  '';
 
   # Disable tests for now
   doCheck = false;
