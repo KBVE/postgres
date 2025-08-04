@@ -23,11 +23,9 @@ stdenv.mkDerivation rec {
   makeFlags = [ "USE_PGXS=1" ];
 
   installPhase = ''
-    mkdir -p $out/{lib,share/postgresql/extension}
-
-    cp *${postgresql.dlSuffix}      $out/lib
-    cp *.sql     $out/share/postgresql/extension
-    cp *.control $out/share/postgresql/extension
+    install -D -t $out/lib pg_failover_slots${postgresql.dlSuffix}
+    install -D -t $out/share/postgresql/extension *.sql
+    install -D -t $out/share/postgresql/extension *.control
   '';
 
   meta = with lib; {
