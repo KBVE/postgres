@@ -50,7 +50,25 @@ buildPgrxExtension_0_15_0 rec {
     );
   };
 
-  cargoHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # TODO: Replace with actual cargoHash
+  cargoLock = {
+    lockFile = "${src}/Cargo.lock";
+    allowBuiltinFetchGit = true;
+    outputHashes = {
+      "jedi-0.2.0" = "sha256-23u6jB89ok7UUQMcHOcYA/4Lwq59JMEXbVx3gGPGOks=";
+    };
+  };
+  
+  # Override the workspace to exclude problematic members
+  prePatch = ''
+    # Create a minimal workspace that excludes jedi
+    cat > Cargo.toml << 'EOF'
+[workspace]
+members = [
+  "apps/kbve/kilobase",
+]
+resolver = "2"
+EOF
+  '';
 
   # Disable tests for now
   doCheck = false;
