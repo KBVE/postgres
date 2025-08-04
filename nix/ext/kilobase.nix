@@ -18,7 +18,7 @@ buildPgrxExtension_0_15_0 rec {
   src = fetchFromGitHub {
     owner = "KBVE";
     repo = "kbve";
-    rev = "v${version}";
+    rev = "main"; # Use main branch or specific commit hash
     hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # TODO: Replace with actual hash
   };
 
