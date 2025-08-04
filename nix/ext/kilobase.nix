@@ -48,7 +48,10 @@ buildPgrxExtension_0_15_0 rec {
 
   cargoLock = {
     lockFile = "${src}/Cargo.lock";
-    allowBuiltinFetchGit = false;
+    allowBuiltinFetchGit = true;
+    outputHashes = {
+      "jedi-0.2.0" = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # TODO: Replace with actual hash
+    };
   };
 
   # Disable tests for now
