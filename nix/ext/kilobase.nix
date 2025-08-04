@@ -52,26 +52,8 @@ buildPgrxExtension_0_15_0 rec {
   # Add pg17 feature
   buildFeatures = [ "pg17" ];
   
-  # Override buildPhase to properly handle workspace package
-  buildPhase = ''
-    runHook preBuild
-    
-    echo "Building kilobase from workspace root"
-    
-    # First build the package
-    PGRX_BUILD_FLAGS="--frozen -j $NIX_BUILD_CORES --package kilobase" \
-    cargo build --release --package kilobase --features pg17
-    
-    # Then package it with pgrx
-    cd apps/kbve/kilobase
-    cargo pgrx package \
-      --pg-config ${postgresql}/bin/pg_config \
-      --release \
-      --features "pg17" \
-      --out-dir "$out"
-    
-    runHook postBuild
-  '';
+  # Since we're at workspace root, we need to specify where to enter for build
+  buildAndTestSubdir = "apps/kbve/kilobase";
 
   # Disable tests for now
   doCheck = false;
