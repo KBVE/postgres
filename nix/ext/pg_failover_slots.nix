@@ -23,9 +23,24 @@ stdenv.mkDerivation rec {
   makeFlags = [ "USE_PGXS=1" ];
 
   installPhase = ''
-    install -D -t $out/lib pg_failover_slots${postgresql.dlSuffix}
-    install -D -t $out/share/postgresql/extension *.sql
-    install -D -t $out/share/postgresql/extension *.control
+    mkdir -p $out/lib
+    mkdir -p $out/share/postgresql/extension
+    
+    # Install the shared library
+    cp pg_failover_slots${postgresql.dlSuffix} $out/lib/
+    
+    # Install SQL and control files if they exist
+    for file in *.sql; do
+      if [ -f "$file" ]; then
+        cp "$file" $out/share/postgresql/extension/
+      fi
+    done
+    
+    for file in *.control; do
+      if [ -f "$file" ]; then
+        cp "$file" $out/share/postgresql/extension/
+      fi
+    done
   '';
 
   meta = with lib; {
