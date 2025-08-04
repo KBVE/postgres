@@ -52,8 +52,14 @@
       cargo-pgrx = final.cargo-pgrx.cargo-pgrx_0_14_3;
     };
 
-    buildPgrxExtension_0_15_0 = prev.buildPgrxExtension.override {
-      cargo-pgrx = final.cargo-pgrx.cargo-pgrx_0_15_0;
-    };
+    buildPgrxExtension_0_15_0 = 
+      let
+        rustVersion = "1.85.0";
+        pgrxVersion = "0.15.0";
+        mkPgrxExtension = final.callPackages ../cargo-pgrx/mkPgrxExtension.nix {
+          inherit rustVersion pgrxVersion;
+        };
+      in
+      mkPgrxExtension;
   };
 }

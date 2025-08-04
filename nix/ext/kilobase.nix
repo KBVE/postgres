@@ -7,12 +7,6 @@
   buildPgrxExtension_0_15_0,
   rust-bin,
 }:
-let
-  rustVersion = "1.85.0"; # Updated to support edition 2024
-  cargo = rust-bin.stable.${rustVersion}.default.override {
-    extensions = [ "rust-src" "rustfmt" "clippy" ];
-  };
-in
 buildPgrxExtension_0_15_0 rec {
   pname = "kilobase";
   version = "0.1.0";
