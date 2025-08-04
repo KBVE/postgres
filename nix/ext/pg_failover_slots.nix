@@ -3,6 +3,7 @@
   stdenv,
   fetchFromGitHub,
   postgresql,
+  libkrb5,
   openssl,
 }:
 
@@ -10,7 +11,7 @@ stdenv.mkDerivation rec {
   pname = "pg_failover_slots";
   version = "1.1.0";
 
-  buildInputs = [ postgresql openssl ];
+  buildInputs = [ postgresql libkrb5 openssl ];
 
   src = fetchFromGitHub {
     owner = "EnterpriseDB";
