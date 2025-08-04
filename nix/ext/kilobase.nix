@@ -6,7 +6,6 @@
   postgresql,
   buildPgrxExtension_0_15_0,
   rust-bin,
-  cargo-hack,
 }:
 let
   rustVersion = "1.85.0"; # Updated to support edition 2024
@@ -19,50 +18,32 @@ buildPgrxExtension_0_15_0 rec {
   version = "0.1.0";
   inherit postgresql;
 
-  src = fetchFromGitHub {
-    owner = "KBVE";
-    repo = "kbve";
-    rev = "main"; # Use main branch or specific commit hash
-    hash = "sha256-3HLpiGuM2zl6h7hIspe9lsHlo/kLy6FaxgTaopR7H4Y=";
-  };
+  src = let
+    fullSrc = fetchFromGitHub {
+      owner = "KBVE";
+      repo = "kbve";
+      rev = "main"; # Use main branch or specific commit hash
+      hash = "sha256-3HLpiGuM2zl6h7hIspe9lsHlo/kLy6FaxgTaopR7H4Y=";
+    };
+  in pkgs.runCommand "kilobase-standalone-src" {} ''
+    # Copy only the kilobase source
+    mkdir -p $out
+    cp -r ${fullSrc}/apps/kbve/kilobase/* $out/
+    chmod -R +w $out
+    
+    # Ensure we have a proper standalone Cargo.toml
+    ls -la $out/
+    cat $out/Cargo.toml || echo "No Cargo.toml found"
+  '';
 
-  # Cargo.toml path if not at root
-  cargoRoot = "apps/kbve/kilobase";
+  # Since we're using the kilobase directory as root, no cargoRoot needed
+  # cargoRoot = "";
   
-  # Use cargo-hack for workspace isolation
+  # No cargoBuildFlags needed since we're building the root package
   cargoBuildFlags = [ ];
 
-  nativeBuildInputs = [ cargo cargo-hack ];
+  nativeBuildInputs = [ cargo ];
   buildInputs = [ postgresql ];
-
-  # Override build commands to use cargo-hack for isolation
-  buildPhase = ''
-    runHook preBuild
-    
-    cd ${cargoRoot}
-    
-    # Use cargo-hack to build only this package in isolation
-    cargo hack build \
-      --each-feature \
-      --no-dev-deps \
-      --release \
-      --target-dir ../../../target
-    
-    runHook postBuild
-  '';
-
-  installPhase = ''
-    runHook preInstall
-    
-    cd ${cargoRoot}
-    
-    # Install using cargo pgrx
-    cargo pgrx install \
-      --release \
-      --pg-config ${postgresql}/bin/pg_config
-    
-    runHook postInstall
-  '';
 
   # Update this array when kilobase version is updated
   previousVersions = [
@@ -82,13 +63,32 @@ buildPgrxExtension_0_15_0 rec {
     );
   };
 
+  # Generate the Cargo.lock for this standalone package
   cargoLock = {
-    lockFile = "${src}/Cargo.lock";
+    lockFile = let
+      fullSrc = fetchFromGitHub {
+        owner = "KBVE";
+        repo = "kbve";
+        rev = "main";
+        hash = "sha256-3HLpiGuM2zl6h7hIspe9lsHlo/kLy6FaxgTaopR7H4Y=";
+      };
+      cargoLockSrc = pkgs.runCommand "kilobase-cargo-lock" {
+        nativeBuildInputs = [ cargo ];
+        CARGO = "${cargo}/bin/cargo";
+      } ''
+        # Copy the kilobase source
+        cp -r ${fullSrc}/apps/kbve/kilobase $out-temp
+        chmod -R +w $out-temp
+        cd $out-temp
+        
+        # Generate a fresh Cargo.lock for just this package
+        ${cargo}/bin/cargo generate-lockfile
+        
+        # Copy the generated lock file to output
+        cp Cargo.lock $out
+      '';
+    in "${cargoLockSrc}";
     allowBuiltinFetchGit = true;
-    # outputHashes for any git dependencies (if needed)
-    # outputHashes = {
-    #   "some-git-dep-0.1.0" = "sha256-...";
-    # };
   };
 
   # Override the default Cargo.toml generation to use our filtered workspace
