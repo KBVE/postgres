@@ -18,11 +18,11 @@ buildPgrxExtension_0_15_0 rec {
     hash = "sha256-VVH9GyKgKgkvi3iI8SffScPl00cIDlvPZbVJLgrzX1o=";
   };
 
-  # Build from the kilobase subdirectory
-  cargoRoot = "apps/kbve/kilobase";
+  # Build from workspace root (with Rust 1.85 we support edition 2024)
+  cargoRoot = ".";
   
-  # No need for --package flag when in the package directory
-  cargoBuildFlags = [ ];
+  # Build only kilobase package
+  cargoBuildFlags = [ "--package" "kilobase" ];
 
   nativeBuildInputs = [ ];
   buildInputs = [ postgresql ];
@@ -54,13 +54,11 @@ buildPgrxExtension_0_15_0 rec {
   # Disable tests for now
   doCheck = false;
   
-  # Disable cargo-auditable to avoid issues with edition 2024
+  # Disable cargo-auditable to avoid issues
   auditable = false;
   
-  # Copy Cargo.lock to the subdirectory where cargo expects it
-  postPatch = ''
-    cp ${src}/Cargo.lock apps/kbve/kilobase/
-  '';
+  # Tell cargo pgrx package which package to build
+  buildAndTestSubdir = "apps/kbve/kilobase";
 
   meta = with lib; {
     description = "Kilobase PostgreSQL extension";
