@@ -18,32 +18,46 @@ buildPgrxExtension_0_15_0 rec {
   version = "0.1.0";
   inherit postgresql;
 
-  src = let
-    fullSrc = fetchFromGitHub {
-      owner = "KBVE";
-      repo = "kbve";
-      rev = "main"; # Use main branch or specific commit hash
-      hash = "sha256-3HLpiGuM2zl6h7hIspe9lsHlo/kLy6FaxgTaopR7H4Y=";
-    };
-  in pkgs.runCommand "kilobase-standalone-src" {} ''
-    # Copy only the kilobase source
-    mkdir -p $out
-    cp -r ${fullSrc}/apps/kbve/kilobase/* $out/
-    chmod -R +w $out
-    
-    # Ensure we have a proper standalone Cargo.toml
-    ls -la $out/
-    cat $out/Cargo.toml || echo "No Cargo.toml found"
-  '';
+  src = fetchFromGitHub {
+    owner = "KBVE";
+    repo = "kbve";
+    rev = "main"; # Use main branch or specific commit hash
+    hash = "sha256-VVH9GyKgKgkvi3iI8SffScPl00cIDlvPZbVJLgrzX1o=";
+  };
 
-  # Since we're using the kilobase directory as root, no cargoRoot needed
-  # cargoRoot = "";
+  # Cargo.toml path if not at root
+  cargoRoot = "apps/kbve/kilobase";
   
-  # No cargoBuildFlags needed since we're building the root package
+  # Override build to use cargo pgrx package command
   cargoBuildFlags = [ ];
 
   nativeBuildInputs = [ cargo ];
   buildInputs = [ postgresql ];
+
+  # Override build phase to use the specific cargo pgrx package command
+  buildPhase = ''
+    runHook preBuild
+    
+    cd ${cargoRoot}
+    
+    # Use cargo pgrx package with specific features and output directory
+    cargo pgrx package \
+      --pg-config ${postgresql}/bin/pg_config \
+      --features pg17 \
+      --out-dir ../../../dist/target/kilobase
+    
+    runHook postBuild
+  '';
+
+  installPhase = ''
+    runHook preInstall
+    
+    # Install from the dist directory
+    mkdir -p $out
+    cp -r dist/target/kilobase/* $out/
+    
+    runHook postInstall
+  '';
 
   # Update this array when kilobase version is updated
   previousVersions = [
@@ -63,16 +77,8 @@ buildPgrxExtension_0_15_0 rec {
     );
   };
 
-  # Use the original Cargo.lock but only build kilobase
-  cargoLock = let
-    fullSrc = fetchFromGitHub {
-      owner = "KBVE";
-      repo = "kbve";
-      rev = "main";
-      hash = "sha256-VVH9GyKgKgkvi3iI8SffScPl00cIDlvPZbVJLgrzX1o=";
-    };
-  in {
-    lockFile = "${fullSrc}/Cargo.lock";
+  cargoLock = {
+    lockFile = "${src}/Cargo.lock";
     allowBuiltinFetchGit = true;
   };
 
