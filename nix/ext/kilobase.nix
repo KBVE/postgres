@@ -5,7 +5,6 @@
   fetchFromGitHub,
   postgresql,
   buildPgrxExtension_0_15_0,
-  rust-bin,
 }:
 buildPgrxExtension_0_15_0 rec {
   pname = "kilobase";
@@ -25,7 +24,7 @@ buildPgrxExtension_0_15_0 rec {
   # Build only the kilobase package with pg17 feature
   cargoBuildFlags = [ "--package" "kilobase" "--features" "pg17" ];
 
-  nativeBuildInputs = [ cargo ];
+  nativeBuildInputs = [ ];
   buildInputs = [ postgresql ];
 
   # Update this array when kilobase version is updated
@@ -33,7 +32,6 @@ buildPgrxExtension_0_15_0 rec {
     # Add previous versions here when updating
   ];
 
-  CARGO = "${cargo}/bin/cargo";
 
   # Darwin env needs PGPORT to be unique for build to not clash with other pgrx extensions
   env = lib.optionalAttrs stdenv.isDarwin {
