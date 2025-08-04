@@ -19,6 +19,7 @@ buildPgrxExtension_0_15_0 rec {
     owner = "KBVE";
     repo = "kbve";
     rev = "main"; # Use main branch or specific commit hash
+    # If you have a specific commit without edition 2024 requirements, use that instead
     hash = "sha256-AKsvBd1UR28/o269Ys3lZzYkCRXXZrIgurE9C9lsW+Y=";
   };
 
@@ -49,13 +50,7 @@ buildPgrxExtension_0_15_0 rec {
     );
   };
 
-  cargoLock = {
-    lockFile = "${src}/Cargo.lock";
-    allowBuiltinFetchGit = true;
-    outputHashes = {
-      "jedi-0.2.0" = "sha256-23u6jB89ok7UUQMcHOcYA/4Lwq59JMEXbVx3gGPGOks=";
-    };
-  };
+  cargoHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # TODO: Replace with actual cargoHash
 
   # Disable tests for now
   doCheck = false;
