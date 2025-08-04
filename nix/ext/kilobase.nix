@@ -18,11 +18,11 @@ buildPgrxExtension_0_15_0 rec {
     hash = "sha256-VVH9GyKgKgkvi3iI8SffScPl00cIDlvPZbVJLgrzX1o=";
   };
 
-  # Cargo.toml path if not at root
-  cargoRoot = "apps/kbve/kilobase";
+  # Build from workspace root
+  cargoRoot = ".";
   
   # Build only the kilobase package with pg17 feature
-  cargoBuildFlags = [ "--package" "kilobase" "--features" "pg17" ];
+  cargoBuildFlags = [ "--package" "kilobase" ];
 
   nativeBuildInputs = [ ];
   buildInputs = [ postgresql ];
@@ -49,14 +49,8 @@ buildPgrxExtension_0_15_0 rec {
     allowBuiltinFetchGit = true;
   };
 
-  # Copy the workspace Cargo.lock to the kilobase subdirectory where cargo expects it
-  postPatch = ''
-    cp ${src}/Cargo.lock apps/kbve/kilobase/Cargo.lock
-    
-    # Debug: Make sure we're using our filtered workspace configuration
-    ls -la Cargo.toml
-    cat Cargo.toml
-  '';
+  # Add pg17 feature
+  buildFeatures = [ "pg17" ];
 
   # Disable tests for now
   doCheck = false;
