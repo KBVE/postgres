@@ -3,13 +3,14 @@
   stdenv,
   fetchFromGitHub,
   postgresql,
+  openssl,
 }:
 
 stdenv.mkDerivation rec {
   pname = "pg_failover_slots";
   version = "1.1.0";
 
-  buildInputs = [ postgresql ];
+  buildInputs = [ postgresql openssl ];
 
   src = fetchFromGitHub {
     owner = "EnterpriseDB";
