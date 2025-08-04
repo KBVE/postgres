@@ -1,6 +1,7 @@
 {
   lib,
   stdenv,
+  pkgs,
   fetchFromGitHub,
   postgresql,
   buildPgrxExtension_0_15_0,
@@ -8,20 +9,58 @@
 }:
 let
   rustVersion = "1.85.0"; # Updated to support edition 2024
-  cargo = rust-bin.stable.${rustVersion}.default;
+  cargo = rust-bin.stable.${rustVersion}.default.override {
+    extensions = [ "rust-src" "rustfmt" "clippy" ];
+  };
 in
 buildPgrxExtension_0_15_0 rec {
   pname = "kilobase";
   version = "0.1.0";
   inherit postgresql;
 
-  src = fetchFromGitHub {
-    owner = "KBVE";
-    repo = "kbve";
-    rev = "main"; # Use main branch or specific commit hash
-    # If you have a specific commit without edition 2024 requirements, use that instead
-    hash = "sha256-3HLpiGuM2zl6h7hIspe9lsHlo/kLy6FaxgTaopR7H4Y=";
-  };
+  src = let
+    # Fetch the full repo first
+    fullSrc = fetchFromGitHub {
+      owner = "KBVE";
+      repo = "kbve";
+      rev = "main"; # Use main branch or specific commit hash
+      hash = "sha256-3HLpiGuM2zl6h7hIspe9lsHlo/kLy6FaxgTaopR7H4Y=";
+    };
+  in pkgs.runCommand "kilobase-filtered-src" {} ''
+    # Copy the full source
+    cp -r ${fullSrc} $out
+    chmod -R +w $out
+    
+    # Create a minimal workspace Cargo.toml that only includes kilobase
+    cat > $out/Cargo.toml << 'EOF'
+[workspace]
+resolver = "2"
+members = ["apps/kbve/kilobase"]
+
+# Profile overrides for kilobase (from original workspace)
+[profile.dev.package.kilobase]
+panic = "unwind"
+
+[profile.release.package.kilobase] 
+panic = "unwind"
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+EOF
+
+    # Remove problematic workspace members to prevent cargo from trying to process them
+    rm -rf $out/packages/rust/jedi || true
+    rm -rf $out/packages/rust/q || true 
+    rm -rf $out/packages/rust/soul || true
+    rm -rf $out/packages/erust || true
+    rm -rf $out/packages/holy || true
+    rm -rf $out/apps/kbve/rust_kanban || true
+    rm -rf $out/apps/kbve/rust_api_profile || true
+    rm -rf $out/apps/rareicon || true
+    rm -rf $out/apps/experimental || true
+    rm -rf $out/apps/rentearth || true
+    rm -rf $out/apps/discord || true
+  '';
 
   # Cargo.toml path if not at root
   cargoRoot = "apps/kbve/kilobase";
@@ -40,46 +79,6 @@ buildPgrxExtension_0_15_0 rec {
   ];
 
   CARGO = "${cargo}/bin/cargo";
-
-  # Environment variables to isolate build and prevent workspace interference
-  preBuild = ''
-    # Create a minimal Cargo.toml that only includes kilobase to avoid workspace issues
-    cd ${cargoRoot}
-    
-    # Backup original workspace Cargo.toml if it exists
-    if [ -f ../../../Cargo.toml ]; then
-      mv ../../../Cargo.toml ../../../Cargo.toml.bak
-    fi
-    
-    # Create a standalone Cargo.toml for this build
-    cat > ../../../Cargo.toml << 'EOF'
-[package]
-name = "kilobase-standalone"
-version = "0.1.0"
-edition = "2021"
-
-[workspace]
-members = ["apps/kbve/kilobase"]
-resolver = "2"
-
-# Profile overrides for kilobase
-[profile.dev.package.kilobase]
-panic = "unwind"
-
-[profile.release.package.kilobase] 
-panic = "unwind"
-opt-level = 3
-lto = "fat"
-codegen-units = 1
-EOF
-  '';
-
-  postBuild = ''
-    # Restore original Cargo.toml
-    if [ -f ../../../Cargo.toml.bak ]; then
-      mv ../../../Cargo.toml.bak ../../../Cargo.toml
-    fi
-  '';
 
   # Darwin env needs PGPORT to be unique for build to not clash with other pgrx extensions
   env = lib.optionalAttrs stdenv.isDarwin {
