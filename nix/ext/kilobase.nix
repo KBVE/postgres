@@ -20,7 +20,7 @@ buildPgrxExtension_0_15_0 rec {
     repo = "kbve";
     rev = "main"; # Use main branch or specific commit hash
     # If you have a specific commit without edition 2024 requirements, use that instead
-    hash = "sha256-opUg+oGe3WFWzEpHSWY+I9Uava32RUCCWCbSeDBuhFA=";
+    hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # Force refresh to get latest repo
   };
 
   # Cargo.toml path if not at root
