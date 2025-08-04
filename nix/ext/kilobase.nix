@@ -26,8 +26,10 @@ buildPgrxExtension_0_15_0 rec {
   # Cargo.toml path if not at root
   cargoRoot = "apps/kbve/kilobase";
   
-  # Build only the kilobase package
-  cargoBuildFlags = [ "--package" "kilobase" ];
+  # Build only the kilobase package, isolate from workspace members
+  cargoBuildFlags = [ 
+    "--package" "kilobase"
+  ];
 
   nativeBuildInputs = [ cargo ];
   buildInputs = [ postgresql ];
@@ -38,6 +40,46 @@ buildPgrxExtension_0_15_0 rec {
   ];
 
   CARGO = "${cargo}/bin/cargo";
+
+  # Environment variables to isolate build and prevent workspace interference
+  preBuild = ''
+    # Create a minimal Cargo.toml that only includes kilobase to avoid workspace issues
+    cd ${cargoRoot}
+    
+    # Backup original workspace Cargo.toml if it exists
+    if [ -f ../../../Cargo.toml ]; then
+      mv ../../../Cargo.toml ../../../Cargo.toml.bak
+    fi
+    
+    # Create a standalone Cargo.toml for this build
+    cat > ../../../Cargo.toml << 'EOF'
+[package]
+name = "kilobase-standalone"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+members = ["apps/kbve/kilobase"]
+resolver = "2"
+
+# Profile overrides for kilobase
+[profile.dev.package.kilobase]
+panic = "unwind"
+
+[profile.release.package.kilobase] 
+panic = "unwind"
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+EOF
+  '';
+
+  postBuild = ''
+    # Restore original Cargo.toml
+    if [ -f ../../../Cargo.toml.bak ]; then
+      mv ../../../Cargo.toml.bak ../../../Cargo.toml
+    fi
+  '';
 
   # Darwin env needs PGPORT to be unique for build to not clash with other pgrx extensions
   env = lib.optionalAttrs stdenv.isDarwin {
