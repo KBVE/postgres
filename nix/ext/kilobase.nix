@@ -19,7 +19,7 @@ buildPgrxExtension_0_15_0 rec {
     owner = "KBVE";
     repo = "kbve";
     rev = "main"; # Use main branch or specific commit hash
-    hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # TODO: Replace with actual hash
+    hash = "sha256-AKsvBd1UR28/o269Ys3lZzYkCRXXZrIgurE9C9lsW+Y=";
   };
 
   # Cargo.toml path if not at root
