@@ -77,5 +77,10 @@ in
     hash = "sha256-3TsNpEqNm3Uol5XPW1i0XEbP2fF2+RKB2d7lO6BDnvQ=";
     cargoHash = "sha256-Ny7j56pwB+2eEK62X0nWfFKQy5fBz+Q1oyvecivxLkk=";
   };
+  cargo-pgrx_0_15_0 = mkCargoPgrx {
+    version = "0.15.0";
+    hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # TODO: Replace with actual hash
+    cargoHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # TODO: Replace with actual hash
+  };
   inherit mkCargoPgrx;
 }

@@ -51,5 +51,9 @@
     buildPgrxExtension_0_14_3 = prev.buildPgrxExtension.override {
       cargo-pgrx = final.cargo-pgrx.cargo-pgrx_0_14_3;
     };
+
+    buildPgrxExtension_0_15_0 = prev.buildPgrxExtension.override {
+      cargo-pgrx = final.cargo-pgrx.cargo-pgrx_0_15_0;
+    };
   };
 }
