@@ -28,14 +28,11 @@ buildPgrxExtension_0_15_0 rec {
   # Cargo.toml path if not at root
   cargoRoot = "apps/kbve/kilobase";
   
-  # Override build to use cargo pgrx package command
-  cargoBuildFlags = [ ];
+  # Build only the kilobase package with pg17 feature
+  cargoBuildFlags = [ "--package" "kilobase" "--features" "pg17" ];
 
   nativeBuildInputs = [ cargo ];
   buildInputs = [ postgresql ];
-
-  # Add pg17 feature to the build
-  cargoBuildFlags = [ "--package" "kilobase" "--features" "pg17" ];
 
   # Update this array when kilobase version is updated
   previousVersions = [
