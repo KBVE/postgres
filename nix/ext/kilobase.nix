@@ -49,9 +49,11 @@ buildPgrxExtension_0_15_0 rec {
     allowBuiltinFetchGit = true;
   };
 
-  # Override the default Cargo.toml generation to use our filtered workspace
+  # Copy the workspace Cargo.lock to the kilobase subdirectory where cargo expects it
   postPatch = ''
-    # Make sure we're using our filtered workspace configuration
+    cp ${src}/Cargo.lock apps/kbve/kilobase/Cargo.lock
+    
+    # Debug: Make sure we're using our filtered workspace configuration
     ls -la Cargo.toml
     cat Cargo.toml
   '';
