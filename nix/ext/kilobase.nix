@@ -21,8 +21,8 @@ buildPgrxExtension_0_15_0 rec {
   # Build from workspace root (with Rust 1.85 we support edition 2024)
   cargoRoot = ".";
   
-  # Build only kilobase package
-  cargoBuildFlags = [ "--package" "kilobase" ];
+  # Build only kilobase package - but don't use --package flag as buildAndTestSubdir handles it
+  cargoBuildFlags = [ ];
 
   nativeBuildInputs = [ ];
   buildInputs = [ postgresql ];
