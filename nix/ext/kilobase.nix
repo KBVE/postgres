@@ -18,10 +18,10 @@ buildPgrxExtension_0_15_0 rec {
     hash = "sha256-VVH9GyKgKgkvi3iI8SffScPl00cIDlvPZbVJLgrzX1o=";
   };
 
-  # Build from workspace root
+  # Build from workspace root to handle Cargo.lock properly
   cargoRoot = ".";
   
-  # Build only the kilobase package with pg17 feature
+  # Build only the kilobase package
   cargoBuildFlags = [ "--package" "kilobase" ];
 
   nativeBuildInputs = [ ];
@@ -31,7 +31,6 @@ buildPgrxExtension_0_15_0 rec {
   previousVersions = [
     # Add previous versions here when updating
   ];
-
 
   # Darwin env needs PGPORT to be unique for build to not clash with other pgrx extensions
   env = lib.optionalAttrs stdenv.isDarwin {
@@ -51,12 +50,12 @@ buildPgrxExtension_0_15_0 rec {
 
   # Add pg17 feature
   buildFeatures = [ "pg17" ];
-  
-  # Since we're at workspace root, we need to specify where to enter for build
-  buildAndTestSubdir = "apps/kbve/kilobase";
 
   # Disable tests for now
   doCheck = false;
+  
+  # Disable cargo-auditable to avoid issues with edition 2024
+  auditable = false;
 
   meta = with lib; {
     description = "Kilobase PostgreSQL extension";
