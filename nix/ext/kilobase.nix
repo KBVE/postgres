@@ -3,6 +3,7 @@
   stdenv,
   pkgs,
   fetchFromGitHub,
+  fetchCrate,
   postgresql,
   buildPgrxExtension_0_15_0,
   rust-bin,
@@ -12,76 +13,77 @@ let
   cargo = rust-bin.stable.${rustVersion}.default.override {
     extensions = [ "rust-src" "rustfmt" "clippy" ];
   };
+  
+  # Build cargo-hack for workspace isolation
+  cargo-hack = pkgs.rustPlatform.buildRustPackage rec {
+    pname = "cargo-hack";
+    version = "0.6.37";
+    
+    src = fetchCrate {
+      inherit pname version;
+      hash = "sha256-TzMzRHemfX7/NeFNNCS00az6v2XNs3qn/ya7LW5E5P0=";
+    };
+    
+    cargoHash = "sha256-E8c0PEvOLJqNkHp0sHY7lRY6pIJ7xMmE6WUH2rL7WOc=";
+    
+    nativeBuildInputs = [ cargo ];
+    
+    meta = with lib; {
+      description = "Cargo subcommand to provide various options useful for testing and continuous integration";
+      homepage = "https://github.com/taiki-e/cargo-hack";
+      license = with licenses; [ asl20 mit ];
+    };
+  };
 in
 buildPgrxExtension_0_15_0 rec {
   pname = "kilobase";
   version = "0.1.0";
   inherit postgresql;
 
-  src = let
-    # Fetch the full repo first
-    fullSrc = fetchFromGitHub {
-      owner = "KBVE";
-      repo = "kbve";
-      rev = "main"; # Use main branch or specific commit hash
-      hash = "sha256-3HLpiGuM2zl6h7hIspe9lsHlo/kLy6FaxgTaopR7H4Y=";
-    };
-  in pkgs.runCommand "kilobase-isolated-src" {
-    nativeBuildInputs = [ cargo ];
-    CARGO = "${cargo}/bin/cargo";
-  } ''
-    # Copy only the kilobase directory and necessary files
-    mkdir -p $out/apps/kbve
-    cp -r ${fullSrc}/apps/kbve/kilobase $out/apps/kbve/
-    
-    # Copy any shared files that might be needed (like .gitignore, etc.)
-    if [ -f ${fullSrc}/.gitignore ]; then
-      cp ${fullSrc}/.gitignore $out/
-    fi
-    
-    chmod -R +w $out
-    
-    # Create a standalone workspace Cargo.toml that only includes kilobase
-    cat > $out/Cargo.toml << 'EOF'
-[workspace]
-resolver = "2"
-members = ["apps/kbve/kilobase"]
-
-# Profile overrides for kilobase (from original workspace)
-[profile.dev.package.kilobase]
-panic = "unwind"
-
-[profile.release.package.kilobase] 
-panic = "unwind"
-opt-level = 3
-lto = "fat"
-codegen-units = 1
-EOF
-
-    # Change to workspace root and generate a new Cargo.lock with only kilobase dependencies
-    cd $out
-    ${cargo}/bin/cargo generate-lockfile --offline || ${cargo}/bin/cargo generate-lockfile
-    
-    # Verify the lockfile was created
-    if [ ! -f Cargo.lock ]; then
-      echo "Failed to generate Cargo.lock"
-      exit 1
-    fi
-    
-    echo "Generated isolated Cargo.lock for kilobase"
-    ls -la
-  '';
+  src = fetchFromGitHub {
+    owner = "KBVE";
+    repo = "kbve";
+    rev = "main"; # Use main branch or specific commit hash
+    hash = "sha256-3HLpiGuM2zl6h7hIspe9lsHlo/kLy6FaxgTaopR7H4Y=";
+  };
 
   # Cargo.toml path if not at root
   cargoRoot = "apps/kbve/kilobase";
   
-  # Build only the kilobase package, isolate from workspace members
-  cargoBuildFlags = [ 
-    "--package" "kilobase"
-  ];
+  # Use cargo-hack for workspace isolation
+  cargoBuildFlags = [ ];
 
-  nativeBuildInputs = [ cargo ];
+  nativeBuildInputs = [ cargo cargo-hack ];
   buildInputs = [ postgresql ];
+
+  # Override build commands to use cargo-hack for isolation
+  buildPhase = ''
+    runHook preBuild
+    
+    cd ${cargoRoot}
+    
+    # Use cargo-hack to build only this package in isolation
+    cargo hack build \
+      --each-feature \
+      --no-dev-deps \
+      --release \
+      --target-dir ../../../target
+    
+    runHook postBuild
+  '';
+
+  installPhase = ''
+    runHook preInstall
+    
+    cd ${cargoRoot}
+    
+    # Install using cargo pgrx
+    cargo pgrx install \
+      --release \
+      --pg-config ${postgresql}/bin/pg_config
+    
+    runHook postInstall
+  '';
 
   # Update this array when kilobase version is updated
   previousVersions = [
