@@ -63,31 +63,16 @@ buildPgrxExtension_0_15_0 rec {
     );
   };
 
-  # Generate the Cargo.lock for this standalone package
-  cargoLock = {
-    lockFile = let
-      fullSrc = fetchFromGitHub {
-        owner = "KBVE";
-        repo = "kbve";
-        rev = "main";
-        hash = "sha256-3HLpiGuM2zl6h7hIspe9lsHlo/kLy6FaxgTaopR7H4Y=";
-      };
-      cargoLockSrc = pkgs.runCommand "kilobase-cargo-lock" {
-        nativeBuildInputs = [ cargo ];
-        CARGO = "${cargo}/bin/cargo";
-      } ''
-        # Copy the kilobase source
-        cp -r ${fullSrc}/apps/kbve/kilobase $out-temp
-        chmod -R +w $out-temp
-        cd $out-temp
-        
-        # Generate a fresh Cargo.lock for just this package
-        ${cargo}/bin/cargo generate-lockfile
-        
-        # Copy the generated lock file to output
-        cp Cargo.lock $out
-      '';
-    in "${cargoLockSrc}";
+  # Use the original Cargo.lock but only build kilobase
+  cargoLock = let
+    fullSrc = fetchFromGitHub {
+      owner = "KBVE";
+      repo = "kbve";
+      rev = "main";
+      hash = "sha256-3HLpiGuM2zl6h7hIspe9lsHlo/kLy6FaxgTaopR7H4Y=";
+    };
+  in {
+    lockFile = "${fullSrc}/Cargo.lock";
     allowBuiltinFetchGit = true;
   };
 
