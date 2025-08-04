@@ -3,36 +3,15 @@
   stdenv,
   pkgs,
   fetchFromGitHub,
-  fetchCrate,
   postgresql,
   buildPgrxExtension_0_15_0,
   rust-bin,
+  cargo-hack,
 }:
 let
   rustVersion = "1.85.0"; # Updated to support edition 2024
   cargo = rust-bin.stable.${rustVersion}.default.override {
     extensions = [ "rust-src" "rustfmt" "clippy" ];
-  };
-  
-  # Build cargo-hack for workspace isolation
-  cargo-hack = pkgs.rustPlatform.buildRustPackage rec {
-    pname = "cargo-hack";
-    version = "0.6.37";
-    
-    src = fetchCrate {
-      inherit pname version;
-      hash = "sha256-TzMzRHemfX7/NeFNNCS00az6v2XNs3qn/ya7LW5E5P0=";
-    };
-    
-    cargoHash = "sha256-E8c0PEvOLJqNkHp0sHY7lRY6pIJ7xMmE6WUH2rL7WOc=";
-    
-    nativeBuildInputs = [ cargo ];
-    
-    meta = with lib; {
-      description = "Cargo subcommand to provide various options useful for testing and continuous integration";
-      homepage = "https://github.com/taiki-e/cargo-hack";
-      license = with licenses; [ asl20 mit ];
-    };
   };
 in
 buildPgrxExtension_0_15_0 rec {
