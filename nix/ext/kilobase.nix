@@ -24,6 +24,9 @@ buildPgrxExtension_0_15_0 rec {
 
   # Cargo.toml path if not at root
   cargoRoot = "apps/kbve/kilobase";
+  
+  # Build only the kilobase package
+  cargoBuildFlags = [ "--package" "kilobase" ];
 
   nativeBuildInputs = [ cargo ];
   buildInputs = [ postgresql ];
