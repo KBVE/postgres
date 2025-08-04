@@ -50,8 +50,14 @@ buildPgrxExtension_0_15_0 rec {
     );
   };
 
-  # Use cargoHash instead of cargoLock to avoid monorepo workspace issues
-  cargoHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # TODO: Replace with actual cargoHash
+  cargoLock = {
+    lockFile = "${src}/Cargo.lock";
+    allowBuiltinFetchGit = true;
+    # outputHashes for any git dependencies (if needed)
+    # outputHashes = {
+    #   "some-git-dep-0.1.0" = "sha256-...";
+    # };
+  };
 
   # Disable tests for now
   doCheck = false;
