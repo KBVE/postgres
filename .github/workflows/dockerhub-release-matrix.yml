@@ -1,13 +1,6 @@
 name: Release all major versions on Dockerhub
 
 on:
-  push:
-    branches:
-      - develop
-      - release/*
-    paths:
-      - ".github/workflows/dockerhub-release-matrix.yml"
-      - "ansible/vars.yml"
   workflow_dispatch:
 
 permissions:

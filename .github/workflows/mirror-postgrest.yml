@@ -1,12 +1,7 @@
 name: Mirror PostgREST
 
 on:
-  push:
-    branches:
-      - develop
-    paths:
-      - ".github/workflows/mirror-postgrest.yml"
-      - "common.vars*"
+  workflow_dispatch:
 
 permissions:
   contents: read

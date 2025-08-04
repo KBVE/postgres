@@ -1,13 +1,6 @@
 name: Publish nix pg_upgrade_scripts
 
 on:
-  push:
-    branches:
-      - develop
-      - release/*
-    paths:
-      - '.github/workflows/publish-nix-pgupgrade-scripts.yml'
-      - 'ansible/vars.yml'
   workflow_dispatch:
     inputs:
       postgresVersion:

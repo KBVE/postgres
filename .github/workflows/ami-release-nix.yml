@@ -1,14 +1,6 @@
 name: Release AMI Nix
 
 on:
-  push:
-    branches:
-      - develop
-      - release/*
-    paths:
-      - '.github/workflows/ami-release-nix.yml'
-      - 'common-nix.vars.pkr.hcl'
-      - 'ansible/vars.yml'
   workflow_dispatch:
 
 permissions:

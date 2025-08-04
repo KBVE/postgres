@@ -1,16 +1,6 @@
 name: Build QEMU image
 
 on:
-  push:
-    branches:
-      - develop
-      - release/*
-    paths:
-      - '.github/workflows/qemu-image-build.yml'
-      - 'qemu-arm64-nix.pkr.hcl'
-      - 'common-nix.vars.pkr.hcl'
-      - 'ansible/vars.yml'
-      - 'scripts/*'
   workflow_dispatch:
 
 permissions:
