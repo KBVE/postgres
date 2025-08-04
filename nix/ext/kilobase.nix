@@ -18,11 +18,11 @@ buildPgrxExtension_0_15_0 rec {
     hash = "sha256-VVH9GyKgKgkvi3iI8SffScPl00cIDlvPZbVJLgrzX1o=";
   };
 
-  # Build from workspace root to handle Cargo.lock properly
-  cargoRoot = ".";
+  # Build from the kilobase subdirectory
+  cargoRoot = "apps/kbve/kilobase";
   
-  # Build only the kilobase package
-  cargoBuildFlags = [ "--package" "kilobase" ];
+  # No need for --package flag when in the package directory
+  cargoBuildFlags = [ ];
 
   nativeBuildInputs = [ ];
   buildInputs = [ postgresql ];
@@ -56,6 +56,11 @@ buildPgrxExtension_0_15_0 rec {
   
   # Disable cargo-auditable to avoid issues with edition 2024
   auditable = false;
+  
+  # Copy Cargo.lock to the subdirectory where cargo expects it
+  postPatch = ''
+    cp ${src}/Cargo.lock apps/kbve/kilobase/
+  '';
 
   meta = with lib; {
     description = "Kilobase PostgreSQL extension";
