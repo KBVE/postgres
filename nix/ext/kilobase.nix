@@ -69,7 +69,7 @@ buildPgrxExtension_0_15_0 rec {
       owner = "KBVE";
       repo = "kbve";
       rev = "main";
-      hash = "";
+      hash = "sha256-qlmJ1uJDpHxAsAksJJmkcfmCYe4W2XrSesGrQdDe7mI=";
     };
   in {
     lockFile = "${fullSrc}/Cargo.lock";
