@@ -7,7 +7,7 @@
   rust-bin,
 }:
 let
-  rustVersion = "1.80.0";
+  rustVersion = "1.85.0"; # Updated to support edition 2024
   cargo = rust-bin.stable.${rustVersion}.default;
 in
 buildPgrxExtension_0_15_0 rec {
