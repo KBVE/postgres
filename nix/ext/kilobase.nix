@@ -34,30 +34,8 @@ buildPgrxExtension_0_15_0 rec {
   nativeBuildInputs = [ cargo ];
   buildInputs = [ postgresql ];
 
-  # Override build phase to use the specific cargo pgrx package command
-  buildPhase = ''
-    runHook preBuild
-    
-    cd ${cargoRoot}
-    
-    # Use cargo pgrx package with specific features and output directory
-    cargo pgrx package \
-      --pg-config ${postgresql}/bin/pg_config \
-      --features pg17 \
-      --out-dir ../../../dist/target/kilobase
-    
-    runHook postBuild
-  '';
-
-  installPhase = ''
-    runHook preInstall
-    
-    # Install from the dist directory
-    mkdir -p $out
-    cp -r dist/target/kilobase/* $out/
-    
-    runHook postInstall
-  '';
+  # Add pg17 feature to the build
+  cargoBuildFlags = [ "--package" "kilobase" "--features" "pg17" ];
 
   # Update this array when kilobase version is updated
   previousVersions = [
