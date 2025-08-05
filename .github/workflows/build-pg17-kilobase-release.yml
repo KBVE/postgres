@@ -60,8 +60,8 @@ jobs:
             ${{ steps.args.outputs.result }}
           target: production
           tags: |
-            ghcr.io/${{ github.repository_owner }}/postgres:${{ inputs.tag_name }}
-            ghcr.io/${{ github.repository_owner }}/postgres:latest-kilobase
+            ghcr.io/kbve/postgres:${{ inputs.tag_name }}
+            ghcr.io/kbve/postgres:latest-kilobase
           platforms: linux/amd64
           cache-from: type=gha,scope=${{ github.ref_name }}-pg17-kilobase
           cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-pg17-kilobase
@@ -79,7 +79,7 @@ jobs:
             
             ### Docker Image:
             ```bash
-            docker pull ghcr.io/${{ github.repository_owner }}/postgres:${{ inputs.tag_name }}
+            docker pull ghcr.io/kbve/postgres:${{ inputs.tag_name }}
             ```
             
             ### CNPG Cluster Usage:
@@ -90,7 +90,7 @@ jobs:
               name: postgres-kilobase
             spec:
               instances: 3
-              imageName: ghcr.io/${{ github.repository_owner }}/postgres:${{ inputs.tag_name }}
+              imageName: ghcr.io/kbve/postgres:${{ inputs.tag_name }}
               postgresql:
                 shared_preload_libraries:
                   - "pg_stat_statements"
