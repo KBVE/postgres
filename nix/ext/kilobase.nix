@@ -2,7 +2,7 @@
   lib,
   stdenv,
   pkgs,
-  fetchFromGitHub,
+  fetchGit,
   postgresql,
   buildPgrxExtension_0_15_0,
 }:
@@ -11,7 +11,7 @@ buildPgrxExtension_0_15_0 rec {
   version = "0.1.0";
   inherit postgresql;
 
-  src = fetchFromGitHub {
+  src = fetchGit {
     owner = "KBVE";
     repo = "kbve";
     ref = "main";
