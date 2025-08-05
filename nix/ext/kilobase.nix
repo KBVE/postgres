@@ -14,6 +14,7 @@ buildPgrxExtension_0_15_0 rec {
   src = fetchFromGitHub {
     owner = "KBVE";
     repo = "kbve";
+    ref = "main";
     rev = "0fa92a28de572d282d9dcffb6bca9518f714654b";
     hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   };
