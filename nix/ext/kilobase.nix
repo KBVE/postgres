@@ -11,10 +11,11 @@ buildPgrxExtension_0_15_0 rec {
   version = "0.1.0";
   inherit postgresql;
 
-  src = fetchGit {
-    url = "https://github.com/KBVE/kbve.git";
-    ref = "main";
-    allRefs = true;
+  src = fetchFromGitHub {
+    owner = "KBVE";
+    repo = "kbve";
+    rev = "0fa92a28de572d282d9dcffb6bca9518f714654b";
+    hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   };
 
   # Build from workspace root (with Rust 1.85 we support edition 2024)
