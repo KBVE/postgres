@@ -14,8 +14,8 @@ buildPgrxExtension_0_15_0 rec {
 
   src = fetchgit {
     url = "https://github.com/KBVE/kbve.git";
-    rev = "0fa92a28de572d282d9dcffb6bca9518f714654b";
-    sha256 = "sha256-VVH9GyKgKgkvi3iI8SffScPl00cIDlvPZbVJLgrzX1o=";
+    rev = "c969aa6b78de56266e0496c9f61ea0895c1730d4";
+    sha256 = "sha256-D8Zxhgr4fV/s6m7MWs9P0tpHNkgkaWdJ2m4C/BKbGHk=";
   };
 
   # Build from workspace root (with Rust 1.85 we support edition 2024)
