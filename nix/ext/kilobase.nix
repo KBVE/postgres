@@ -15,7 +15,7 @@ buildPgrxExtension_0_15_0 rec {
     owner = "KBVE";
     repo = "kbve";
     rev = "0fa92a28de572d282d9dcffb6bca9518f714654b";
-    hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+    hash = "sha256-VVH9GyKgKgkvi3iI8SffScPl00cIDlvPZbVJLgrzX1o=";
   };
 
   # Build from workspace root (with Rust 1.85 we support edition 2024)
