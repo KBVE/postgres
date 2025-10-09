@@ -188,7 +188,6 @@ builtins.listToAttrs (
       "pg_graphql"
       "pg_jsonschema"
       "pg_net"
-      "pgmq"
       "vector"
       "wrappers"
     ]
