@@ -46,7 +46,7 @@
         ../ext/pg_tle.nix
         ../ext/wrappers/default.nix
         ../ext/supautils.nix
-        ../ext/plv8.nix
+        ../ext/plv8
         ../ext/pg_failover_slots.nix
         ../ext/kilobase.nix
       ];
@@ -55,7 +55,7 @@
       # plus the orioledb option
       #we're not using timescaledb or plv8 in the orioledb-17 version or pg 17 of supabase extensions
       orioleFilteredExtensions = builtins.filter (
-        x: x != ../ext/timescaledb.nix && x != ../ext/timescaledb-2.9.1.nix && x != ../ext/plv8.nix
+        x: x != ../ext/timescaledb.nix && x != ../ext/timescaledb-2.9.1.nix && x != ../ext/plv8
       ) ourExtensions;
 
       orioledbExtensions = orioleFilteredExtensions ++ [ ../ext/orioledb.nix ];
