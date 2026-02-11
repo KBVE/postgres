@@ -1,0 +1,49 @@
+{
+	"name": "postgres",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/postgres",
+	"tags": ["postgres", "infrastructure"],
+	"targets": {
+		"docker-build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"docker build -t kbve/postgres:17 -f Dockerfile-17 ."
+				],
+				"cwd": "apps/postgres",
+				"parallel": false
+			}
+		},
+		"docker-build-k8s": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"docker build -t kbve/postgres:k8s -f Dockerfile-kubernetes ."
+				],
+				"cwd": "apps/postgres",
+				"parallel": false
+			}
+		},
+		"migrate": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"echo 'Run migrations via: docker-compose -f migrations/docker-compose.yaml up'"
+				],
+				"cwd": "apps/postgres",
+				"parallel": false
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"echo 'Run tests via: nix-shell --run make test (requires nix)'"
+				],
+				"cwd": "apps/postgres",
+				"parallel": false
+			}
+		}
+	}
+}
