@@ -11,6 +11,7 @@
       postgresql_17
       postgresql_orioledb-17
       supabase-groonga
+      switch-ext-version
       ;
 
     xmrig = throw "The xmrig package has been explicitly disabled in this flake.";
@@ -34,6 +35,10 @@
       inherit (final) makeRustPlatform;
       inherit (final) stdenv;
       inherit (final) writeShellScriptBin;
+    };
+
+    buildPgrxExtension_0_11_2 = prev.buildPgrxExtension.override {
+      cargo-pgrx = final.cargo-pgrx.cargo-pgrx_0_11_2;
     };
 
     buildPgrxExtension_0_11_3 = prev.buildPgrxExtension.override {

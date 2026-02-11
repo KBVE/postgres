@@ -35,8 +35,10 @@
           dbmate-tool = pkgs.callPackage ./dbmate-tool.nix { inherit (self.supabase) defaults; };
           docs = pkgs.callPackage ./docs.nix { };
           supabase-groonga = pkgs.callPackage ./groonga { };
+          http-mock-server = pkgs.callPackage ./http-mock-server.nix { };
           local-infra-bootstrap = pkgs.callPackage ./local-infra-bootstrap.nix { };
           migrate-tool = pkgs.callPackage ./migrate-tool.nix { psql_15 = self'.packages."psql_15/bin"; };
+          overlayfs-on-package = pkgs.callPackage ./overlayfs-on-package.nix { };
           packer = pkgs.callPackage ./packer.nix { inherit inputs; };
           pg-restore = pkgs.callPackage ./pg-restore.nix { psql_15 = self'.packages."psql_15/bin"; };
           pg_prove = pkgs.perlPackages.TAPParserSourceHandlerpgTAP;
@@ -56,6 +58,9 @@
           start-server = pkgs-lib.makePostgresDevSetup {
             inherit pkgs;
             name = "start-postgres-server";
+          };
+          switch-ext-version = pkgs.callPackage ./switch-ext-version.nix {
+            inherit (self'.packages) overlayfs-on-package;
           };
           sync-exts-versions = pkgs.callPackage ./sync-exts-versions.nix { inherit (inputs') nix-editor; };
           trigger-nix-build = pkgs.callPackage ./trigger-nix-build.nix { };

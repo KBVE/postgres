@@ -19,7 +19,6 @@
       ourExtensions = [
         ../ext/rum.nix
         ../ext/timescaledb.nix
-        ../ext/timescaledb-2.9.1.nix
         ../ext/pgroonga.nix
         ../ext/index_advisor.nix
         ../ext/wal2json.nix
@@ -32,13 +31,13 @@
         ../ext/postgis.nix
         ../ext/pgrouting.nix
         ../ext/pgtap.nix
-        ../ext/pg_cron.nix
+        ../ext/pg_cron
         ../ext/pgsql-http.nix
         ../ext/pg_plan_filter.nix
         ../ext/pg_net.nix
         ../ext/pg_hashids.nix
         ../ext/pgsodium.nix
-        ../ext/pg_graphql.nix
+        ../ext/pg_graphql
         ../ext/pg_stat_monitor.nix
         ../ext/pg_jsonschema.nix
         ../ext/pgvector.nix
