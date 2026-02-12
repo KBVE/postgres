@@ -6,15 +6,6 @@ on:
   pull_request:
     branches: [develop]
   workflow_dispatch:
-    inputs:
-      tag_name:
-        description: 'Docker image tag (e.g., 17.6.1.082-kbve)'
-        required: true
-        default: '17.6.1.082-kbve'
-      release_name:
-        description: 'Release name'
-        required: true
-        default: 'PostgreSQL 17 KBVE Build'
 
 permissions:
   contents: write
@@ -26,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  flake-check:
+  check:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -45,9 +36,52 @@ jobs:
       - name: Evaluate PG17 derivation
         run: nix build --dry-run .#packages.x86_64-linux."psql_17/bin" --accept-flake-config
 
+  detect-version:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      changed: ${{ steps.check-tag.outputs.changed }}
+      owner: ${{ steps.owner.outputs.name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Lowercase owner
+        id: owner
+        run: echo "name=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Extract version from vars.yml
+        id: version
+        run: |
+          VERSION=$(grep 'postgres17:' ansible/vars.yml | sed 's/.*"\(.*\)".*/\1/')
+          echo "tag=${VERSION}-kbve" >> $GITHUB_OUTPUT
+          echo "Detected version: ${VERSION}-kbve"
+
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if tag exists in GHCR
+        id: check-tag
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          OWNER="${{ steps.owner.outputs.name }}"
+          if docker manifest inspect "ghcr.io/${OWNER}/postgres:${TAG}" > /dev/null 2>&1; then
+            echo "Tag ${TAG} already exists in GHCR, skipping build"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Tag ${TAG} not found in GHCR, will build"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
   build-and-release:
-    if: github.event_name == 'workflow_dispatch'
-    needs: flake-check
+    needs: [check, detect-version]
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && needs.detect-version.outputs.changed == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
@@ -99,8 +133,8 @@ jobs:
             ${{ steps.args.outputs.result }}
           target: production
           tags: |
-            ghcr.io/${{ github.repository_owner }}/postgres:${{ inputs.tag_name }}
-            ghcr.io/${{ github.repository_owner }}/postgres:latest
+            ghcr.io/${{ needs.detect-version.outputs.owner }}/postgres:${{ needs.detect-version.outputs.tag }}
+            ghcr.io/${{ needs.detect-version.outputs.owner }}/postgres:latest
           platforms: linux/amd64
           cache-from: type=gha,scope=${{ github.ref_name }}-pg17-kbve
           cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-pg17-kbve
@@ -109,14 +143,14 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ inputs.tag_name }}
-          name: ${{ inputs.release_name }}
+          tag_name: ${{ needs.detect-version.outputs.tag }}
+          name: "PostgreSQL 17 KBVE Build ${{ needs.detect-version.outputs.tag }}"
           body: |
             ## PostgreSQL 17 Docker Image (KBVE Build)
 
             ### Docker Image
             ```bash
-            docker pull ghcr.io/${{ github.repository_owner }}/postgres:${{ inputs.tag_name }}
+            docker pull ghcr.io/${{ needs.detect-version.outputs.owner }}/postgres:${{ needs.detect-version.outputs.tag }}
             ```
 
             ### CNPG Cluster Usage
@@ -127,7 +161,7 @@ jobs:
               name: postgres-kbve
             spec:
               instances: 3
-              imageName: ghcr.io/${{ github.repository_owner }}/postgres:${{ inputs.tag_name }}
+              imageName: ghcr.io/${{ needs.detect-version.outputs.owner }}/postgres:${{ needs.detect-version.outputs.tag }}
               postgresql:
                 shared_preload_libraries:
                   - "pg_stat_statements"
@@ -135,6 +169,7 @@ jobs:
             ```
 
             ### Fork Customizations
+            - kilobase (pgrx 0.16.1 extension)
             - pg_failover_slots (logical replication slot failover)
             - All standard Supabase PostgreSQL extensions
 
