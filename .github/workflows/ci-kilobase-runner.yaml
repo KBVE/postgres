@@ -158,17 +158,36 @@ jobs:
 
       - name: Test KBVE extensions
         run: |
-          echo "=== Test pgvector ==="
-          docker exec pg-test-17 psql -U supabase_admin -h localhost -d postgres -c "CREATE EXTENSION IF NOT EXISTS vector; SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';"
+          PSQL="docker exec pg-test-17 psql -U supabase_admin -h localhost -d postgres -v ON_ERROR_STOP=1"
 
-          echo "=== Test kilobase ==="
-          docker exec pg-test-17 psql -U supabase_admin -h localhost -d postgres -c "CREATE EXTENSION kilobase; SELECT extname, extversion FROM pg_extension WHERE extname = 'kilobase';"
+          echo "=== Load extensions ==="
+          $PSQL -c "CREATE EXTENSION IF NOT EXISTS vector;"
+          $PSQL -c "CREATE EXTENSION kilobase;"
+          $PSQL -c "CREATE EXTENSION vchord;"
+          $PSQL -c "SELECT extname, extversion FROM pg_extension WHERE extname IN ('vector', 'kilobase', 'vchord') ORDER BY extname;"
 
-          echo "=== Test vchord ==="
-          docker exec pg-test-17 psql -U supabase_admin -h localhost -d postgres -c "CREATE EXTENSION vchord; SELECT extname, extversion FROM pg_extension WHERE extname = 'vchord';"
+          echo "=== Smoke test: pgvector ==="
+          $PSQL <<'SQL'
+          CREATE TABLE test_embeddings (id serial PRIMARY KEY, embedding vector(3));
+          INSERT INTO test_embeddings (embedding) VALUES ('[1,2,3]'), ('[4,5,6]'), ('[7,8,9]');
+          SELECT id, embedding, embedding <-> '[1,1,1]' AS distance FROM test_embeddings ORDER BY embedding <-> '[1,1,1]' LIMIT 2;
+          DROP TABLE test_embeddings;
+          SQL
 
-          echo "=== Verify all loaded ==="
-          docker exec pg-test-17 psql -U supabase_admin -h localhost -d postgres -c "SELECT extname, extversion FROM pg_extension WHERE extname IN ('vector', 'kilobase', 'vchord') ORDER BY extname;"
+          echo "=== Smoke test: kilobase ==="
+          $PSQL <<'SQL'
+          SELECT kilobase_info();
+          SQL
+
+          echo "=== Smoke test: vchord ==="
+          $PSQL <<'SQL'
+          CREATE TABLE test_vchord (id serial PRIMARY KEY, embedding vector(3));
+          INSERT INTO test_vchord (embedding) SELECT ('[' || (random()*10)::int || ',' || (random()*10)::int || ',' || (random()*10)::int || ']')::vector FROM generate_series(1, 100);
+          SELECT COUNT(*) AS row_count FROM test_vchord;
+          DROP TABLE test_vchord;
+          SQL
+
+          echo "=== All extension smoke tests passed ==="
 
       - name: Cleanup test container
         if: always()
