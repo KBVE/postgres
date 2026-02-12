@@ -1,8 +1,10 @@
 FROM --platform=linux/amd64 nixos/nix:latest
 
-# Enable flakes and install jq
-RUN echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf \
-    && nix-env -iA nixpkgs.jq
+# Disable sandbox (required for QEMU-emulated builds on ARM hosts)
+# and enable flakes
+RUN echo "sandbox = false" >> /etc/nix/nix.conf \
+ && echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf \
+ && echo "filter-syscalls = false" >> /etc/nix/nix.conf
 
 WORKDIR /work
 COPY bootstrap.sh /work/bootstrap.sh
