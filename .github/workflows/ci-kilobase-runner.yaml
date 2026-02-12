@@ -43,7 +43,7 @@ jobs:
             max-jobs = 4
 
       - name: Nix flake check
-        run: nix flake check --no-build
+        run: nix flake check --no-build --accept-flake-config
 
   build-and-release:
     if: github.event_name == 'workflow_dispatch'
