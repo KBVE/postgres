@@ -1,0 +1,32 @@
+name: KBVE Postgres PR Check
+
+on:
+  pull_request:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Install Nix
+        uses: NixOS/nix-installer-action@d6ef7ecd8f685af89869e5aca0580a33e3e3150c
+        with:
+          installer-version: 2.33.2
+          extra-conf: |
+            substituters = https://cache.nixos.org https://nix-postgres-artifacts.s3.amazonaws.com
+            trusted-public-keys = nix-postgres-artifacts:dGZlQOvKcNEjvT7QEAJbcV6b6uk7VF/hWMjhYleiaLI= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+            max-jobs = 4
+
+      - name: Evaluate PG17 derivation
+        run: nix build --dry-run .#packages.x86_64-linux."psql_17/bin" --accept-flake-config

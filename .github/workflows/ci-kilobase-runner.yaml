@@ -3,8 +3,6 @@ name: KBVE Postgres CI & Release
 on:
   push:
     branches: [develop]
-  pull_request:
-    branches: [develop]
   workflow_dispatch:
 
 permissions:
