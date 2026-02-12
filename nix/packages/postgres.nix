@@ -45,7 +45,6 @@
         ../ext/supautils.nix
         ../ext/plv8
         ../ext/pg_failover_slots.nix
-        ../ext/kilobase.nix
       ];
 
       #Where we import and build the orioledb extension, we add on our custom extensions
@@ -56,7 +55,7 @@
       ) ourExtensions;
 
       orioledbExtensions = orioleFilteredExtensions ++ [ ../ext/orioledb.nix ];
-      dbExtensions17 = orioleFilteredExtensions;
+      dbExtensions17 = orioleFilteredExtensions ++ [ ../ext/kilobase.nix ];
 
       # CLI extensions - minimal set for Supabase CLI with migration support
       cliExtensions = [

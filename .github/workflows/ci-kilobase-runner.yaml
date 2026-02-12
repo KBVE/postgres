@@ -42,8 +42,8 @@ jobs:
             trusted-public-keys = nix-postgres-artifacts:dGZlQOvKcNEjvT7QEAJbcV6b6uk7VF/hWMjhYleiaLI= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
             max-jobs = 4
 
-      - name: Nix flake check
-        run: nix flake check --no-build --accept-flake-config
+      - name: Evaluate PG17 derivation
+        run: nix build --dry-run .#packages.x86_64-linux."psql_17/bin" --accept-flake-config
 
   build-and-release:
     if: github.event_name == 'workflow_dispatch'
