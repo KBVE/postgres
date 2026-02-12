@@ -110,6 +110,7 @@
             cargo-pgrx_0_12_6
             cargo-pgrx_0_12_9
             cargo-pgrx_0_14_3
+            cargo-pgrx_0_17_0
             ;
         }
         // lib.optionalAttrs pkgs.stdenv.isDarwin {

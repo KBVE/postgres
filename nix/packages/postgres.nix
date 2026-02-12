@@ -61,7 +61,7 @@
       ) ourExtensions;
 
       orioledbExtensions = orioleFilteredExtensions ++ [ ../ext/orioledb.nix ];
-      dbExtensions17 = orioleFilteredExtensions ++ [ ../ext/kilobase.nix ];
+      dbExtensions17 = orioleFilteredExtensions ++ [ ../ext/kilobase.nix ../ext/vectorchord.nix ];
 
       # CLI extensions - minimal set for Supabase CLI with migration support
       cliExtensions = [
