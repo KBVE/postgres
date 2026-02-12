@@ -45,6 +45,7 @@
         ../ext/supautils.nix
         ../ext/plv8
         ../ext/pg_failover_slots.nix
+        ../ext/kilobase.nix
       ];
 
       #Where we import and build the orioledb extension, we add on our custom extensions
