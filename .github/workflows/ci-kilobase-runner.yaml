@@ -156,6 +156,20 @@ jobs:
           echo "=== Test basic SQL ==="
           docker exec pg-test-17 psql -U supabase_admin -h localhost -d postgres -c "CREATE TABLE test_health (id serial PRIMARY KEY, data text); INSERT INTO test_health (data) VALUES ('ok'); SELECT * FROM test_health; DROP TABLE test_health;"
 
+      - name: Test KBVE extensions
+        run: |
+          echo "=== Test pgvector ==="
+          docker exec pg-test-17 psql -U supabase_admin -h localhost -d postgres -c "CREATE EXTENSION IF NOT EXISTS vector; SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';"
+
+          echo "=== Test kilobase ==="
+          docker exec pg-test-17 psql -U supabase_admin -h localhost -d postgres -c "CREATE EXTENSION kilobase; SELECT extname, extversion FROM pg_extension WHERE extname = 'kilobase';"
+
+          echo "=== Test vchord ==="
+          docker exec pg-test-17 psql -U supabase_admin -h localhost -d postgres -c "CREATE EXTENSION vchord; SELECT extname, extversion FROM pg_extension WHERE extname = 'vchord';"
+
+          echo "=== Verify all loaded ==="
+          docker exec pg-test-17 psql -U supabase_admin -h localhost -d postgres -c "SELECT extname, extversion FROM pg_extension WHERE extname IN ('vector', 'kilobase', 'vchord') ORDER BY extname;"
+
       - name: Cleanup test container
         if: always()
         run: docker rm -f pg-test-17 || true
@@ -201,6 +215,7 @@ jobs:
 
             ### Fork Customizations
             - kilobase (pgrx 0.16.1 extension)
+            - vchord / VectorChord (pgrx 0.17.0 — scalable vector search)
             - pg_failover_slots (logical replication slot failover)
             - All standard Supabase PostgreSQL extensions
 
