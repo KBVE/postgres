@@ -92,6 +92,7 @@ apt_update_with_fallback() {\n\
 
 RUN bash -c 'source /usr/local/bin/apt-update-fallback.sh && apt_update_with_fallback' && apt install -y \
     curl \
+    git \
     gnupg \
     lsb-release \
     software-properties-common \
