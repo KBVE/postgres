@@ -31,8 +31,8 @@ jobs:
             trusted-public-keys = nix-postgres-artifacts:dGZlQOvKcNEjvT7QEAJbcV6b6uk7VF/hWMjhYleiaLI= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
             max-jobs = 4
 
-      - name: Evaluate PG17 derivation
-        run: nix build --dry-run .#packages.x86_64-linux."psql_17/bin" --accept-flake-config
+      - name: Evaluate PG17 slim derivation
+        run: nix build --dry-run .#packages.x86_64-linux."psql_17_slim/bin" --accept-flake-config
 
   detect-version:
     runs-on: ubuntu-latest
@@ -75,7 +75,7 @@ jobs:
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
 
-  build-and-release:
+  build-test-release:
     needs: [check, detect-version]
     if: |
       github.event_name == 'workflow_dispatch' ||
@@ -111,33 +111,66 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get build args from vars.yml
-        id: args
+      # Step 1: Build locally (no push yet)
+      - name: Build Docker image locally
         run: |
-          nix run nixpkgs#nushell -- -c '
-            open ansible/vars.yml
-            | items { |key value| {name: $key, item: $value} }
-            | where { |it| ($it.item | describe) == "string" }
-            | each { |it| $"($it.name)=($it.item)" }
-            | str join "\n"
-            | save --append $env.GITHUB_OUTPUT
-          '
+          docker build \
+            -f Dockerfile-17 \
+            -t pg-test:17 \
+            --target production \
+            .
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          push: true
-          build-args: |
-            ${{ steps.args.outputs.result }}
-          target: production
-          tags: |
-            ghcr.io/${{ needs.detect-version.outputs.owner }}/postgres:${{ needs.detect-version.outputs.tag }}
-            ghcr.io/${{ needs.detect-version.outputs.owner }}/postgres:latest
-          platforms: linux/amd64
-          cache-from: type=gha,scope=${{ github.ref_name }}-pg17-kbve
-          cache-to: type=gha,mode=max,scope=${{ github.ref_name }}-pg17-kbve
-          file: Dockerfile-17
+      # Step 2: Test the image
+      - name: Start PostgreSQL container
+        run: |
+          docker run -d \
+            --name pg-test-17 \
+            -e POSTGRES_PASSWORD=testpass \
+            -e POSTGRES_HOST_AUTH_METHOD=trust \
+            -p 5432:5432 \
+            pg-test:17
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          echo "Waiting for PostgreSQL to start..."
+          for i in $(seq 1 30); do
+            if docker exec pg-test-17 pg_isready -U postgres -h localhost 2>/dev/null; then
+              echo "PostgreSQL is ready"
+              exit 0
+            fi
+            echo "Attempt $i/30 - waiting..."
+            sleep 2
+          done
+          echo "PostgreSQL failed to start"
+          docker logs pg-test-17
+          exit 1
+
+      - name: Run PostgreSQL health checks
+        run: |
+          echo "=== PostgreSQL version ==="
+          docker exec pg-test-17 psql -U supabase_admin -d postgres -c "SELECT version();"
+
+          echo "=== Installed extensions ==="
+          docker exec pg-test-17 psql -U supabase_admin -d postgres -c "SELECT name, default_version FROM pg_available_extensions ORDER BY name;"
+
+          echo "=== Test basic SQL ==="
+          docker exec pg-test-17 psql -U supabase_admin -d postgres -c "CREATE TABLE test_health (id serial PRIMARY KEY, data text); INSERT INTO test_health (data) VALUES ('ok'); SELECT * FROM test_health; DROP TABLE test_health;"
+
+      - name: Cleanup test container
+        if: always()
+        run: docker rm -f pg-test-17 || true
+
+      # Step 3: Push to GHCR (only after tests pass)
+      - name: Tag and push Docker image
+        run: |
+          OWNER="${{ needs.detect-version.outputs.owner }}"
+          TAG="${{ needs.detect-version.outputs.tag }}"
+          docker tag pg-test:17 "ghcr.io/${OWNER}/postgres:${TAG}"
+          docker tag pg-test:17 "ghcr.io/${OWNER}/postgres:latest"
+          docker push "ghcr.io/${OWNER}/postgres:${TAG}"
+          docker push "ghcr.io/${OWNER}/postgres:latest"
+
+      # Step 4: Create release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
