@@ -12,7 +12,7 @@ let
   pgrxVersion = "0.16.1";
 
   cargo = rust-bin.stable.${rustVersion}.default;
-  mkPgrxExtension = callPackages ../../cargo-pgrx/mkPgrxExtension.nix {
+  mkPgrxExtension = callPackages ../cargo-pgrx/mkPgrxExtension.nix {
     inherit rustVersion pgrxVersion;
   };
 
