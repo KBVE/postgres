@@ -2,7 +2,6 @@
   lib,
   stdenv,
   callPackages,
-  fetchFromGitHub,
   postgresql,
   rust-bin,
 }:
@@ -17,12 +16,10 @@ let
     inherit rustVersion pgrxVersion;
   };
 
-  src = fetchFromGitHub {
-    owner = "KBVE";
-    repo = "kbve";
+  src = builtins.fetchGit {
+    url = "https://github.com/KBVE/kbve.git";
     rev = "c686ba886f9fd8b87ed9b049264f8602a70706e4";
-    # Run `nix build` once to get the correct hash from the error output
-    hash = lib.fakeHash;
+    shallow = true;
   };
 in
 mkPgrxExtension {
@@ -40,8 +37,10 @@ mkPgrxExtension {
 
   cargoLock = {
     lockFile = "${src}/Cargo.lock";
-    allowBuiltinFetchGit = false;
+    allowBuiltinFetchGit = true;
   };
+
+  buildFeatures = [ "pg17" ];
 
   CARGO = "${cargo}/bin/cargo";
 
@@ -51,6 +50,7 @@ mkPgrxExtension {
   };
 
   doCheck = false;
+  auditable = false;
 
   meta = with lib; {
     description = "Kilobase PostgreSQL extension";
