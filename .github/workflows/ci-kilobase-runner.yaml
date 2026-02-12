@@ -148,13 +148,13 @@ jobs:
       - name: Run PostgreSQL health checks
         run: |
           echo "=== PostgreSQL version ==="
-          docker exec pg-test-17 psql -U supabase_admin -d postgres -c "SELECT version();"
+          docker exec pg-test-17 psql -U supabase_admin -h localhost -d postgres -c "SELECT version();"
 
           echo "=== Installed extensions ==="
-          docker exec pg-test-17 psql -U supabase_admin -d postgres -c "SELECT name, default_version FROM pg_available_extensions ORDER BY name;"
+          docker exec pg-test-17 psql -U supabase_admin -h localhost -d postgres -c "SELECT name, default_version FROM pg_available_extensions ORDER BY name;"
 
           echo "=== Test basic SQL ==="
-          docker exec pg-test-17 psql -U supabase_admin -d postgres -c "CREATE TABLE test_health (id serial PRIMARY KEY, data text); INSERT INTO test_health (data) VALUES ('ok'); SELECT * FROM test_health; DROP TABLE test_health;"
+          docker exec pg-test-17 psql -U supabase_admin -h localhost -d postgres -c "CREATE TABLE test_health (id serial PRIMARY KEY, data text); INSERT INTO test_health (data) VALUES ('ok'); SELECT * FROM test_health; DROP TABLE test_health;"
 
       - name: Cleanup test container
         if: always()
