@@ -7,8 +7,8 @@
 }:
 let
   pname = "vchord";
-  version = "1.1.0";
-  rustVersion = "1.90.0";
+  version = "1.0.0";
+  rustVersion = "1.88.0";
   pgrxVersion = "0.16.1";
 
   cargo = rust-bin.stable.${rustVersion}.default;
@@ -18,7 +18,7 @@ let
 
   src = builtins.fetchGit {
     url = "https://github.com/tensorchord/VectorChord.git";
-    rev = "c68a6aec9446899d0ab22662968053bd2820ddd4";
+    rev = "60e7b27c970fe133f85645a367c33b97a819d576";
     shallow = true;
   };
 in
