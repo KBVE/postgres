@@ -8,7 +8,7 @@
 let
   pname = "vchord";
   version = "1.0.0";
-  rustVersion = "1.90.0";
+  rustVersion = "1.91.0";
   pgrxVersion = "0.16.1";
 
   cargo = rust-bin.stable.${rustVersion}.default;

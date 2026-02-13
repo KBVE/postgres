@@ -18,7 +18,7 @@ let
 
   src = builtins.fetchGit {
     url = "https://github.com/KBVE/kbve.git";
-    rev = "c686ba886f9fd8b87ed9b049264f8602a70706e4";
+    rev = "19e56aac711a6e22b4b8eebb128654bc9281dbd3";
     shallow = true;
   };
 in

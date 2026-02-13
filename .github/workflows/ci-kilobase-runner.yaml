@@ -176,7 +176,7 @@ jobs:
 
           echo "=== Smoke test: kilobase ==="
           $PSQL <<'SQL'
-          SELECT kilobase_info();
+          SELECT * FROM matview_refresh_status;
           SQL
 
           echo "=== Smoke test: vchord ==="
